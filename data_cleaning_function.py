@@ -16,4 +16,6 @@ def data_cleaning(df):
     df.invoice_date = pd.to_datetime(df.invoice_date, format='%Y-%m-%d')
     # drop invoice dates before 2005
     df = df[df['invoice_date'] > pd.to_datetime('2005-01-01', format='%Y-%m-%d')]
+    # drop the counter number, there are a lot of 0 values in both train and test data
+    df = df.drop('counter_number', axis = 1)
     return df
