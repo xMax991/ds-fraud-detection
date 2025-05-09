@@ -13,3 +13,11 @@ def broken_meter_function(df:pd.DataFrame)->pd.DataFrame:
         df['meter_broken'] = mask.astype(int)
 
         return df
+=======
+mask = (df_train['consommation_level_1'] + 
+        df_train['consommation_level_2'] + 
+        df_train['consommation_level_3'] + 
+        df_train['consommation_level_4']) != (df_train['new_index'] - df_train['old_index'])
+
+# Create a new row in the dataframe
+df_train['meter_broken'] = mask.astype(int)
