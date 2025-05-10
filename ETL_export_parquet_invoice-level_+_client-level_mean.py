@@ -7,6 +7,7 @@
 import pandas as pd
 import pyarrow
 import fastparquet
+import datetime as dt
 
 # Define data types for CSV imports
 
@@ -107,14 +108,6 @@ def data_cleaning(df):
 
     return df
 
-    # df_train = pd.merge(client_train, invoice_train, how="left", on="client_id")
-
-
-# df_final_test = pd.merge(
-#       client_final_test, invoice_final_test, how="left", on="client_id"
-#    )
-
-
 def transform_df_and_export_parquet(
     df_client, df_invoice, export_path_agg, export_path_non_agg
 ):
@@ -123,6 +116,21 @@ def transform_df_and_export_parquet(
 
     import data_aggregation_function as daf
 
+    ## CLIENT DATA TRANSFORM ##
+
+    # Set target variables to labels instead of integers
+    target_map = {0:"Not Fraud", 1:"Fraud"}
+
+    if "target" in df_client.columns:
+        df_client["target"] = df_client["target"].map(target_map)
+   
+    # Convert client creation_date to integer so model can understand (this is Excel format)
+    df_client["creation_date"] = (
+        pd.to_datetime(df_client["creation_date"]) - pd.Timestamp("1900-01-01")
+    ).dt.days + 2
+
+    ## INVOICE DATA TRANSFORM ##
+
     # Create dummy columns for counter_type values (GAZ/ELEC)
     categorical_cols_pre_agg = ["counter_type"]
 
@@ -130,7 +138,7 @@ def transform_df_and_export_parquet(
         df_invoice_clean, categorical_cols_pre_agg
     )
 
-    #Set aggregations to use for each invoice column when grouping by client-id
+    # Set aggregations to use for each invoice column when grouping by client-id
     cols_and_aggs = {
         "invoice_date": {
             "is_active": False,
@@ -238,6 +246,8 @@ def transform_df_and_export_parquet(
         :, ~df_invoice_aggregated_with_1st_dummies.columns.isin(cols_to_drop)
     ]
 
+    ## MERGE CLIENT AND INVOICE DATA
+
     # Combine aggregated invoice data with client data
     df_client_merged_w_agg_invoice = pd.merge(
         df_client, df_invoice_aggregated, how="left", on="client_id"
@@ -281,12 +291,16 @@ def transform_df_and_export_parquet(
         :, ~df_invoice_non_agg_w_dummies.columns.isin(cols_to_drop_at_end)
     ]
 
+    ## EXPORT TO PARQUET FILES
+
     # Export transformed, client-level aggregated data as Parquet, ready for import into notebooks
     df_agg_to_export.to_parquet(export_path_agg)
 
     # Export transformed, invoice-level 'non-aggregated' data as Parquet, ready for import into notebooks
     df_non_agg_to_export.to_parquet(export_path_non_agg)
 
+
+## RUN TRANSFORM FUNCTION ON OUR DATA
 
 transform_df_and_export_parquet(
     client_train,
