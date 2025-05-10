@@ -11,3 +11,5 @@ statsmodels==0.13.5
 pytest==7.3.1
 scipy==1.15.2
 lightgbm==4.6.0
+pyarrow==20.0.0
+fastparquet==2024.11.0
