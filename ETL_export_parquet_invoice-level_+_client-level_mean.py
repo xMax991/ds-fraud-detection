@@ -238,6 +238,16 @@ def transform_df_and_export_parquet(
         :, ~df_invoice_aggregated_with_1st_dummies.columns.isin(cols_to_drop)
     ]
 
+    # Combine aggregated invoice data with client data
+    df_client_merged_w_agg_invoice = pd.merge(
+        df_client, df_invoice_aggregated, how="left", on="client_id"
+    )
+
+    # Combine non-aggregated invoice data with client data
+    df_client_merged_w_non_agg_invoice = pd.merge(
+        df_client, df_invoice_non_agg, how="left", on="client_id"
+    )
+
     categorical_cols_after_agg = [
         "disrict",
         "client_catg",
@@ -248,23 +258,13 @@ def transform_df_and_export_parquet(
         "counter_code",
     ]
 
-    # Create dummy columns for newly aggregated categorical columns
+    # Create dummy columns for remaining categorical columns
     df_invoice_agg_w_dummies = daf.get_dummies_and_remerge(
-        df_invoice_aggregated, categorical_cols_after_agg
+        df_client_merged_w_agg_invoice, categorical_cols_after_agg
     )
 
     df_invoice_non_agg_w_dummies = daf.get_dummies_and_remerge(
-        df_invoice_non_agg, categorical_cols_after_agg
-    )
-
-    # Combine aggregated invoice data with client data
-    df_client_merged_w_agg_invoice = pd.merge(
-        df_client, df_invoice_agg_w_dummies, how="left", on="client_id"
-    )
-
-    # Combine non-aggregated invoice data with client data
-    df_client_merged_w_non_agg_invoice = pd.merge(
-        df_client, df_invoice_non_agg_w_dummies, how="left", on="client_id"
+        df_client_merged_w_non_agg_invoice, categorical_cols_after_agg
     )
 
     # Drop client_id as no longer needed for grouping (and can cause leakage)
@@ -273,12 +273,12 @@ def transform_df_and_export_parquet(
     ]
 
     # drop cols listed above
-    df_agg_to_export = df_client_merged_w_agg_invoice.loc[
-        :, ~df_client_merged_w_agg_invoice.columns.isin(cols_to_drop_at_end)
+    df_agg_to_export = df_invoice_agg_w_dummies.loc[
+        :, ~df_invoice_agg_w_dummies.columns.isin(cols_to_drop_at_end)
     ]
 
-    df_non_agg_to_export = df_client_merged_w_non_agg_invoice.loc[
-        :, ~df_client_merged_w_non_agg_invoice.columns.isin(cols_to_drop_at_end)
+    df_non_agg_to_export = df_invoice_non_agg_w_dummies.loc[
+        :, ~df_invoice_non_agg_w_dummies.columns.isin(cols_to_drop_at_end)
     ]
 
     # Export transformed, client-level aggregated data as Parquet, ready for import into notebooks
