@@ -131,6 +131,7 @@ def transform_df_and_export_parquet(
         df_client["target"] = df_client["target"].map(target_map)
     """
     # Convert client creation_date to integer so model can understand (this is Excel format)
+    pd.options.mode.copy_on_write = True
     df_client["creation_date"] = (
         pd.to_datetime(df_client["creation_date"]) - pd.Timestamp("1900-01-01")
     ).dt.days + 2
@@ -144,7 +145,7 @@ def transform_df_and_export_parquet(
         df_invoice_clean, categorical_cols_pre_agg
     )
 
-      # Set aggregations to use for each invoice column when grouping by client-id
+    # Set aggregations to use for each invoice column when grouping by client-id
     cols_and_aggs = {
         "invoice_date": {
             "is_active": False,

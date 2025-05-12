@@ -131,6 +131,7 @@ def transform_df_and_export_parquet(
         df_client["target"] = df_client["target"].map(target_map)
     """
     # Convert client creation_date to integer so model can understand (this is Excel format)
+    pd.options.mode.copy_on_write = True
     df_client["creation_date"] = (
         pd.to_datetime(df_client["creation_date"]) - pd.Timestamp("1900-01-01")
     ).dt.days + 2
