@@ -2,9 +2,9 @@ import pandas as pd
 
 def change_in_consommation(df:pd.DataFrame)->pd.DataFrame:
 
-"""
-calculating the biggest change in consumption per costumer and consumption level
-"""
+    """
+    calculating the biggest change in consumption per costumer and consumption level
+    """
 
     df_sorted = df.sort_values(['client_id', 'invoice_date'], ascending=[True, False])
     
