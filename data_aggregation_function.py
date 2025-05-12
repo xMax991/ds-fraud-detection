@@ -1,5 +1,25 @@
 import pandas as pd
 
+def change_in_consommation(df:pd.DataFrame)->pd.DataFrame:
+
+    """
+    calculating the biggest change in consumption per costumer and consumption level
+    """
+
+    df_sorted = df.sort_values(['client_id', 'invoice_date'], ascending=[True, False])
+    
+    consommation_cols = ['consommation_level_1','consommation_level_2','consommation_level_3','consommation_level_4']
+    df_sorted[consommation_cols] = df_sorted.groupby('client_id')[consommation_cols].diff().abs()
+
+    max_changes = df_sorted.groupby('client_id')[consommation_cols].max().reset_index()
+
+    max_changes.rename(columns={'consommation_level_1': 'consommation_level_1_max_change',
+                       'consommation_level_2': 'consommation_level_2_max_change',
+                       'consommation_level_3': 'consommation_level_3_max_change',
+                       'consommation_level_4': 'consommation_level_4_max_change',
+                       }, inplace=True)
+
+    return max_changes
 
 def get_dummies_and_remerge(df, cols_for_get_dummies):
     """ Convert specified columns into dummy columns

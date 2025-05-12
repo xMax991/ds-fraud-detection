@@ -4,14 +4,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
                           title='Confusion matrix',
                           cmap=plt.cm.Oranges):
     """
     DEPRECATED!
-
     """
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
