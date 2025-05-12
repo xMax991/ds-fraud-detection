@@ -1,16 +1,15 @@
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, matthews_corrcoef, f1_score, classification_report, accuracy_score, recall_score, precision_score, roc_auc_score
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
                           title='Confusion matrix',
                           cmap=plt.cm.Oranges):
     """
-    This function prints and plots the confusion matrix.
-    Normalization can be applied by setting `normalize=True`.
-    Source: http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
+    DEPRECATED!
     """
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
@@ -41,3 +40,42 @@ def plot_confusion_matrix(cm, classes,
     plt.tight_layout()
     plt.ylabel('True label', size = 18)
     plt.xlabel('Predicted label', size = 18)
+    
+
+def output_confusion_matrix(train_or_test:str, actual_vals:pd.DataFrame, predicted_vals:pd.DataFrame, display_labels:list, title:str):
+    """Output a confusion matrix
+
+    Args:
+        model_type (str): Train or Test
+        actual_vals (pd.DataFrame): e.g. y_test
+        predicted_vals (pd.DataFrame): e.g. y_test_pred
+        display_labels (list): e.g. ['Not Fraud', 'Fraud'] corresponding to 0, 1 in y vals.
+        title (str): Title for chart
+    """
+    cm = ConfusionMatrixDisplay(confusion_matrix(actual_vals, predicted_vals, normalize='all'),
+                                display_labels=display_labels
+                                )
+
+    cm.plot()
+
+    plt.title(f'Confusion Matrix ({train_or_test})\n{title}')
+    plt.show()
+    
+def print_metric_stats(title:str, train_or_test:str, actual_vals:pd.DataFrame, predicted_vals:pd.DataFrame):
+    """Print summary statistics for model.
+
+    Args:
+        title (str): Info on model
+        train_or_test (str): Train or Test
+        actual_vals (pd.DataFrame): e.g. y_test
+        predicted_vals (pd.DataFrame): e.g. y_test_pred
+    """
+
+    print(f'```\nModel performance for\n {title}:\n---------------')
+    print(f'* {train_or_test} F1 Score:  {round(f1_score(actual_vals, predicted_vals), 4)}')
+    print(f'* {train_or_test} ROC AUC:   {round(roc_auc_score(actual_vals, predicted_vals), 4)}')
+    print(f'* {train_or_test} MCC:       {round(matthews_corrcoef(actual_vals, predicted_vals), 4)}')
+    print(f'* {train_or_test} Accuracy:  {round(accuracy_score(actual_vals, predicted_vals), 4)}')
+    print(f'* {train_or_test} Precision: {round(precision_score(actual_vals, predicted_vals), 4)}')
+    print(f'```')
+
