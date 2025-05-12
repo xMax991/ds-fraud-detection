@@ -112,18 +112,24 @@ def transform_df_and_export_parquet(
     df_client, df_invoice, export_path_agg, export_path_non_agg
 ):
 
-    df_invoice_clean = data_cleaning(df_invoice)
+    ## DATA CLEANING (date ranges, missing values)
 
-    import data_aggregation_function as daf
+    df_invoice_clean = data_cleaning(df_invoice)
 
     ## CLIENT DATA TRANSFORM ##
 
+    ## Drop rows from client table where invoice data has been cleaned
+    client_ids_in_df_invoice_clean = list(set(df_invoice_clean["client_id"]))
+    df_client = df_client[df_client["client_id"].isin(client_ids_in_df_invoice_clean)]
+
+    import data_aggregation_function as daf
+    """
     # Set target variables to labels instead of integers
     target_map = {0:"Not Fraud", 1:"Fraud"}
 
     if "target" in df_client.columns:
         df_client["target"] = df_client["target"].map(target_map)
-   
+    """
     # Convert client creation_date to integer so model can understand (this is Excel format)
     df_client["creation_date"] = (
         pd.to_datetime(df_client["creation_date"]) - pd.Timestamp("1900-01-01")
